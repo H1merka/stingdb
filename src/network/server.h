@@ -20,7 +20,7 @@ class Server {
 public:
     // Инициализация TCP прослушивателя на порту (например, 5432) 
     // с заданным размером пула потоков (обычно = std::thread::hardware_concurrency()).
-    Server(boost::asio::io_context& io_context, short port, std::size_t thread_pool_size)
+    Server(boost::asio::io_context& io_context, uint16_t port, std::size_t thread_pool_size)
         : io_context_(io_context),
           acceptor_(io_context, tcp::endpoint(tcp::v4(), port)),
           thread_pool_size_(thread_pool_size) {

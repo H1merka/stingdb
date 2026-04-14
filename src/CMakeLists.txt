@@ -37,5 +37,9 @@ add_library(stingdb
 )
 target_link_libraries(stingdb PUBLIC transaction execution sql_planner network ${URING_LIBRARIES} pthread)
 
+# Production entry point: The Database Daemon
+add_executable(stingdb-server main.cpp)
+target_link_libraries(stingdb-server PRIVATE stingdb)
+
 target_link_libraries(stingdb PRIVATE ${URING_LIBRARIES} pthread)
 target_include_directories(stingdb PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -22,4 +22,10 @@ find_package(Boost REQUIRED)
 
 include_directories(include src)
 
+# Интеграция тестирования
+include(CTest)
+enable_testing()
+find_package(GTest REQUIRED)
+
 add_subdirectory(src)
+add_subdirectory(test)

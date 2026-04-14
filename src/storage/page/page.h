@@ -39,11 +39,11 @@ public:
     inline void RUnlock() { rwlatch_.unlock_shared(); }
     inline void WLock() { rwlatch_.lock(); }
     inline void WUnlock() { rwlatch_.unlock(); }
+    
+    inline void ResetMemory() { memset(data_, 0, common::PAGE_SIZE); }
 
 private:
     friend class BufferPoolManager;
-
-    inline void ResetMemory() { memset(data_, 0, common::PAGE_SIZE); }
 
     alignas(16) char data_[common::PAGE_SIZE]{}; 
     std::atomic<common::PageId> page_id_{common::INVALID_PAGE_ID};

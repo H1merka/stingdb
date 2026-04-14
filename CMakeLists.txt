@@ -16,6 +16,10 @@ pkg_check_modules(URING REQUIRED liburing)
 # Библиотека xsimd используется для кросс-платформенной (AVX/SSE/NEON) поддержки SIMD
 find_package(xsimd REQUIRED)
 
+# Сетевой слой и Реактор
+# Подключение Boost.Asio для асинхронной обработки тысяч TCP соединений
+find_package(Boost REQUIRED)
+
 include_directories(include src)
 
 add_subdirectory(src)

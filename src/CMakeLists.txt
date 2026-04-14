@@ -14,6 +14,10 @@ add_library(execution INTERFACE)
 # Header only SQL parser and Cost-Based Optimizer (CBO) iteration
 add_library(sql_planner INTERFACE)
 
+# Header only Boost.Asio TCP Server iteration
+add_library(network INTERFACE)
+target_include_directories(network INTERFACE ${Boost_INCLUDE_DIRS})
+
 if(TARGET xsimd::xsimd)
     target_link_libraries(execution INTERFACE xsimd::xsimd)
 elseif(TARGET xsimd)
@@ -31,7 +35,7 @@ add_library(stingdb
     $<TARGET_OBJECTS:storage_table>
     $<TARGET_OBJECTS:storage_index>
 )
-target_link_libraries(stingdb PUBLIC transaction execution sql_planner ${URING_LIBRARIES} pthread)
+target_link_libraries(stingdb PUBLIC transaction execution sql_planner network ${URING_LIBRARIES} pthread)
 
 target_link_libraries(stingdb PRIVATE ${URING_LIBRARIES} pthread)
 target_include_directories(stingdb PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

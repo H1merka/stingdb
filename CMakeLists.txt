@@ -12,6 +12,10 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Wconversion -Werror -Wno-unused-p
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(URING REQUIRED liburing)
 
+# Векторизация и SIMD
+# Библиотека xsimd используется для кросс-платформенной (AVX/SSE/NEON) поддержки SIMD
+find_package(xsimd REQUIRED)
+
 include_directories(include src)
 
 add_subdirectory(src)

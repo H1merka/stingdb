@@ -10,6 +10,10 @@ add_library(transaction INTERFACE)
 
 # Header only abstract vectorized execution
 add_library(execution INTERFACE)
+
+# Header only SQL parser and Cost-Based Optimizer (CBO) iteration
+add_library(sql_planner INTERFACE)
+
 if(TARGET xsimd::xsimd)
     target_link_libraries(execution INTERFACE xsimd::xsimd)
 elseif(TARGET xsimd)
@@ -27,7 +31,7 @@ add_library(stingdb
     $<TARGET_OBJECTS:storage_table>
     $<TARGET_OBJECTS:storage_index>
 )
-target_link_libraries(stingdb PUBLIC transaction execution ${URING_LIBRARIES} pthread)
+target_link_libraries(stingdb PUBLIC transaction execution sql_planner ${URING_LIBRARIES} pthread)
 
 target_link_libraries(stingdb PRIVATE ${URING_LIBRARIES} pthread)
 target_include_directories(stingdb PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

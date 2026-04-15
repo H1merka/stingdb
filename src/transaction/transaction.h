@@ -17,7 +17,7 @@ enum class IsolationLevel { READ_UNCOMMITTED, READ_COMMITTED, REPEATABLE_READ, S
 class Transaction {
 public:
     explicit Transaction(TxnId txn_id, IsolationLevel iso_level = IsolationLevel::REPEATABLE_READ)
-        : txn_id_(txn_id), isolation_level_(iso_level) {}
+        : isolation_level_(iso_level), txn_id_(txn_id) {}
 
     ~Transaction() = default;
 
@@ -52,6 +52,9 @@ public:
     [[nodiscard]] TxnId GetTxnId() const { return txn_id_; }
     [[nodiscard]] TypeEpoch GetReadEpoch() const { return read_epoch_; }
     [[nodiscard]] TransactionState GetState() const { return state_; }
+    [[nodiscard]] IsolationLevel GetIsolationLevel() const { return isolation_level_; }
+    [[nodiscard]] TypeEpoch GetCommitEpoch() const { return commit_epoch_; }
+    void SetCommitEpoch(TypeEpoch epoch) { commit_epoch_ = epoch; }
 
 private:
     TransactionState state_{TransactionState::ACTIVE};

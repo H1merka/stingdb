@@ -45,3 +45,4 @@
 
 # Project ignores
 dev_docs/
+stingdb_data.db

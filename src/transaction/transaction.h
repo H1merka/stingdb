@@ -6,7 +6,7 @@
 namespace stingdb::transaction {
 
 enum class TransactionState { ACTIVE, COMMITTED, PRE_ABORT, ABORTED };
-enum class IsolationLevel { READ_UNCOMMITTED, READ_COMMITTED, REPEATABLE_READ, SERIALIZABLE };
+enum class IsolationLevel { READ_UNCOMMITTED, READ_COMMITTED, REPEATABLE_READ, SERIALIZABLE, SNAPSHOT_ISOLATION };
 
 /**
  * Класс Представляет контекст транзакции с поддержкой Timestamp Ordering и MVCC.

@@ -33,6 +33,13 @@ public:
      */
     int RetrieveAsyncCompletions();
 
+    /**
+     * Выделяет новый идентификатор страницы.
+     */
+    common::PageId AllocatePage() {
+        return next_page_id_.fetch_add(1);
+    }
+
 private:
     std::string file_name_;
     int fd_;

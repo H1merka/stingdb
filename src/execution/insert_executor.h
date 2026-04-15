@@ -60,16 +60,14 @@ public:
             
             // В MVP - заглушка сериализации (сохраняем просто пустые байты размером со схемой).
             // Реальная сериализация должна обходить колонки в input_batch по row_idx и копировать байты в buffer.
-            std::string serialized_tuple(table_info_->GetSchema().GetTupleSize(), '\0');
+            std::string serialized_tuple(table_info_->GetSchema().GetTupleFixedLength(), '\0');
 
             storage::RID inserted_rid;
-            size_t inserted_count = 0;
-            
+
             // Цикл по строкам текущего батча
             for (size_t i = 0; i < input_batch.GetNumRows(); ++i) {
                 if (target_page.InsertTuple(serialized_tuple, &inserted_rid)) {
-                    inserted_count++;
-                    
+
                     // Логирование вставки для обеспечения атомарности (UNDO/REDO)
                     transaction::Transaction* txn = context_->GetTransaction();
                     if (txn) {

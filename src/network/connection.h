@@ -3,6 +3,11 @@
 #include "system/instance.h"
 #include "sql/binder.h"
 #include "sql/ast.h"
+#include "execution/executor_context.h"
+#include "execution/insert_executor.h"
+#include "execution/seq_scan_executor.h"
+#include "execution/vector.h"
+#include "execution/tuple_batch.h"
 #include <boost/asio.hpp>
 #include <memory>
 #include <vector>
@@ -14,6 +19,19 @@
 namespace stingdb::network {
 
 using boost::asio::ip::tcp;
+
+class DummyValues : public execution::ExecutionOperator {
+public:
+    void Init() override {}
+    bool Next(execution::TupleBatch* out) override {
+        if (done_) return false;
+        out->SetNumRows(1);
+        done_ = true;
+        return true;
+    }
+private:
+    bool done_ = false;
+};
 
 class Connection : public std::enable_shared_from_this<Connection> {
 public:
@@ -45,6 +63,29 @@ private:
                             binder.BindStatement(create_stmt);
                             
                             response = "Success: Table 'users' created.\n";
+                        } else if (query.length() >= 6 && query.substr(0, 6) == "INSERT") {
+                            auto* txn = instance_->GetTransactionManager()->Begin(transaction::IsolationLevel::SNAPSHOT_ISOLATION);
+                            execution::ExecutorContext ctx(instance_->GetCatalogManager(), instance_->GetBufferPool(), txn, instance_->GetTransactionManager());
+                            
+                            execution::InsertExecutor insert_exec(&ctx, std::make_unique<DummyValues>(), "users");
+                            insert_exec.Init();
+                            execution::TupleBatch out;
+                            insert_exec.Next(&out);
+                            
+                            instance_->GetTransactionManager()->Commit(txn);
+                            response = "Success: 1 row inserted into 'users'.\n";
+                        } else if (query.length() >= 6 && query.substr(0, 6) == "SELECT") {
+                            auto* txn = instance_->GetTransactionManager()->Begin(transaction::IsolationLevel::SNAPSHOT_ISOLATION);
+                            execution::ExecutorContext ctx(instance_->GetCatalogManager(), instance_->GetBufferPool(), txn, instance_->GetTransactionManager());
+                            
+                            execution::SeqScanExecutor scan_exec(&ctx, "users");
+                            scan_exec.Init();
+                            execution::TupleBatch out;
+                            int count = 0;
+                            while (scan_exec.Next(&out)) { count++; }
+                            
+                            instance_->GetTransactionManager()->Commit(txn);
+                            response = "Success: " + std::to_string(count) + " rows selected from 'users'.\n";
                         } else if (query.length() >= 5 && query.substr(0, 5) == "BEGIN") {
                             auto* txn = instance_->GetTransactionManager()->Begin(transaction::IsolationLevel::SNAPSHOT_ISOLATION);
                             response = "Success: Transaction " + std::to_string(txn->GetTxnId()) + " started.\n";

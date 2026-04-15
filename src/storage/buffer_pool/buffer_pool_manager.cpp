@@ -142,9 +142,39 @@ void BufferPoolManager::FlushAllPages() {
 }
 
 Page* BufferPoolManager::NewPage(common::PageId* first_page_id) {
-    // В будущем здесь будет обращение к Дисковому Менеджеру за следующим свободным ID из метаданных.
-    // Для Итерации 1 возвращаем nullptr (пока не написан Каталог Метаданных Файла).
-    return nullptr;
+    std::lock_guard<std::mutex> lock(latch_);
+
+    common::frame_id_t frame_id = -1;
+    if (!free_list_.empty()) {
+        frame_id = free_list_.front();
+        free_list_.pop_front();
+    } else if (!lru_replacer_.empty()) {
+        frame_id = lru_replacer_.back();
+        lru_replacer_.pop_back();
+
+        Page* victim_page = &pages_[frame_id];
+        if (victim_page->IsDirty()) {
+            disk_manager_->WritePageAsync(victim_page->GetPageId(), victim_page->GetData());
+            while(disk_manager_->RetrieveAsyncCompletions() == 0){}
+        }
+
+        page_table_.erase(victim_page->GetPageId());
+    } else {
+        return nullptr; // No frames available
+    }
+
+    common::PageId new_page_id = disk_manager_->AllocatePage();
+    *first_page_id = new_page_id;
+
+    Page* page = &pages_[frame_id];
+    page->ResetMemory();
+    page->page_id_.store(new_page_id, std::memory_order_relaxed);
+    page->pin_count_.store(1, std::memory_order_relaxed);
+    page->SetDirty(false);
+
+    page_table_[new_page_id] = frame_id;
+
+    return page;
 }
 
 bool BufferPoolManager::DeletePage(common::PageId page_id) {

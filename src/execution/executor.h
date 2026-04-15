@@ -26,22 +26,6 @@ public:
  * В продакшене `SeqScanExecutor` извлекает `Tuple` из `SlottedPage` (хранящегося по строкам - N-ary Storage Model),
  * и сразу "расщепляет" их в колонки (Projection) внутри `TupleBatch`.
  */
-class SeqScanExecutor : public ExecutionOperator {
-public:
-    explicit SeqScanExecutor() {}
-
-    void Init() override {
-        // ... (инициализация scan context'а над таблицей)
-    }
-
-    bool Next(TupleBatch* batch_out) override {
-        // 1. Увеличиваем размер батчей до `DEFAULT_BATCH_SIZE`.
-        // 2. Читаем кортежи (Tuples) через `BufferPoolManager`.
-        // 3. Если сканируем колонку с типом INTEGER (например age >= 18), 
-        //    мы можем загрузить xsimd::batch<int32_t> и мгновенно (за 1 такт CPU) отфильтровать 8/16 значений.
-        return false; // Заглушка
-    }
-};
 
 /**
  * Пример оператора фильтрации с SIMD

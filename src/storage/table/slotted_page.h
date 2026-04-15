@@ -58,11 +58,12 @@ public:
     [[nodiscard]] uint64_t GetLSN() const;
     void SetLSN(uint64_t lsn);
 
+    [[nodiscard]] uint16_t GetTupleCount() const;
+
     // Доступ к базовой странице для операций Buffer Pool'а
     [[nodiscard]] Page* GetRawPage() const { return page_; }
 
 private:
-    [[nodiscard]] uint16_t GetTupleCount() const;
     void SetTupleCount(uint16_t tuple_count);
 
     [[nodiscard]] uint16_t GetFreeSpacePointer() const;

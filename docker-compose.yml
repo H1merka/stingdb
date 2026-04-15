@@ -1,0 +1,31 @@
+version: '3.8'
+
+# Простой контур (оркестр) локального деплоя с монтированием Volume'а.
+# Docker Compose отлично подходит для тестирования и CI/CD "соседних" сервисов (например App + StingDB).
+services:
+  stingdb:
+    # Собираем образ из локального Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Называем контейнер, чтобы он регистрировался во внутреннем DNS докере 
+    container_name: stingdb-master
+    # Пробрасываем порты на хост
+    ports:
+      - "5432:5432"
+    # Хранилище для обеспечения "Durability" свойств.
+    volumes:
+      - stingdb_data:/var/lib/stingdb/data
+    restart: unless-stopped
+    # Запускаем от ранее созданного UID/GID в Dockerfile (UID/GID = 999)    
+    user: "999:999"
+    # Для HighLoad можно добавить ограничения / тюнинг ulimit (FD)
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 1048576
+
+# Именованный том (Volume), управляемый Docker'ом.
+volumes:
+  stingdb_data:
+    driver: local

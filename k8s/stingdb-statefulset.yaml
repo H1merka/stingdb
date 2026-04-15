@@ -1,0 +1,61 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stingdb-svc
+  labels:
+    app: stingdb
+spec:
+  ports:
+  - port: 5432
+    name: stingdb-tcp
+  clusterIP: None # Headless service; необходим для StatefulSet!
+  selector:
+    app: stingdb
+
+---
+apiVersion: apps/v1
+kind: StatefulSet # StatefulSet - единственный верный выбор для БД, хранящей данные на диске
+metadata:
+  name: stingdb
+spec:
+  serviceName: "stingdb-svc"  # Привязка Headless Service'а
+  replicas: 1                 # В будущем (при репликации) может быть > 1   
+  selector:
+    matchLabels:
+      app: stingdb
+  template:
+    metadata:
+      labels:
+        app: stingdb
+    spec:
+      securityContext:          # Security контекст для Пода: разрешить пользователю (999) писать в Volume
+        fsGroup: 999
+        runAsUser: 999
+        runAsGroup: 999
+      containers:
+      - name: stingdb-server
+        image: stingdb:latest   # Docker образ из локального билда (или вашего реджистри)
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5432
+          name: tcp
+        volumeMounts:           # Подключение диска для 'stingdb_data.db'   
+        - name: stingdb-data
+          mountPath: /var/lib/stingdb/data
+        resources:              # Важный HighLoad тюнинг
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2"
+  # Динамический Provisioning постоянного хранилища (Persistent Volume Claim)  volumeClaimTemplates:
+  - metadata:
+      name: stingdb-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: standard # Может быть заменен на local-path / fast-ssd
+      resources:
+        requests:
+          storage: 10Gi

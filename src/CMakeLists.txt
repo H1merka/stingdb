@@ -26,6 +26,9 @@ else()
     target_include_directories(execution INTERFACE ${xsimd_INCLUDE_DIR} ${xsimd_INCLUDE_DIRS})
 endif()
 
+# Header only for MVP System Catalog
+add_library(catalog INTERFACE)
+
 # Link everything together
 add_library(stingdb
     $<TARGET_OBJECTS:common_memory>
@@ -35,7 +38,7 @@ add_library(stingdb
     $<TARGET_OBJECTS:storage_table>
     $<TARGET_OBJECTS:storage_index>
 )
-target_link_libraries(stingdb PUBLIC transaction execution sql_planner network ${URING_LIBRARIES} pthread)
+target_link_libraries(stingdb PUBLIC transaction execution sql_planner network catalog ${URING_LIBRARIES} pthread)
 
 # Production entry point: The Database Daemon
 add_executable(stingdb-server main.cpp)

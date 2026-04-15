@@ -52,6 +52,12 @@ public:
         storage::RID rid{current_page_id_, current_slot_};
         std::string tuple_data;
         if (slotted_page.GetTuple(rid, &tuple_data)) {
+            // MVCC: В будущем здесь будет проверка версии кортежа.
+            // Если транзакция видит эту версию (tuple.commit_ts <= txn->read_epoch_),
+            // мы включаем ее в батч.
+            // Если версия 'из будущего' или создана 'незакомитченной' чужой транзакцией (а мы не READ_UNCOMMITTED),
+            // мы либо пропускаем ее, либо ищем предыдущую версию в UNDO логах (Version Chain).
+
             // TODO: Распарсить tuple_data (бинарный кортеж) согласно Schema и записать поля в TupleBatch.
             // Пока мы только извлекаем сырые данные для интеграции.
         }

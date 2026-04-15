@@ -68,6 +68,8 @@ public:
         txn->Abort();
     }
 
+    [[nodiscard]] inline LogManager* GetLogManager() const { return log_manager_; }
+
 private:
    std::atomic<TxnId> next_txn_id_{1};
    LogManager* log_manager_;

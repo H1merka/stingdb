@@ -69,6 +69,23 @@ public:
             for (size_t i = 0; i < input_batch.GetNumRows(); ++i) {
                 if (target_page.InsertTuple(serialized_tuple, &inserted_rid)) {
                     inserted_count++;
+                    
+                    // Логирование вставки для обеспечения атомарности (UNDO/REDO)
+                    transaction::Transaction* txn = context_->GetTransaction();
+                    if (txn) {
+                        transaction::LogRecord record(
+                            txn->GetTxnId(), 
+                            target_page.GetLSN(), 
+                            transaction::LogRecordType::INSERT, 
+                            inserted_rid, 
+                            serialized_tuple
+                        );
+                        
+                        transaction::TypeEpoch lsn = context_->GetTransactionManager()->GetLogManager()->AppendLogRecord(&record);
+                        txn->AppendWriteSet(lsn);
+                        target_page.SetLSN(lsn); // Обновляем LSN на странице, чтобы при краше восстановить консистентность
+                    }
+
                 } else {
                     // Обработка OOM (Out Of Space): выделяем новую страницу. В MVP опустим этот корнеркейс.
                     break;
